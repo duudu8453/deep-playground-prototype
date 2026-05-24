@@ -1,0 +1,427 @@
+<!doctype html>
+<!-- Copyright 2016 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<html>
+<head lang="zh">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1024">
+  <meta name="keywords" content="神经网络,机器学习,javascript">
+
+  <meta property="og:type" content="article"/>
+  <meta property="og:title" content="Tensorflow — 神经网络可视化学习"/>
+  <meta property="og:description" content="在您的浏览器中直接体验真实的神经网络。"/>
+  <meta property="og:url" content="http://playground.tensorflow.org"/>
+  <meta property="og:image" content="http://playground.tensorflow.org/preview.png"/>
+
+  <meta name="twitter:card" value="summary_large_image">
+  <meta name="twitter:title" content="Tensorflow — 神经网络可视化学习">
+  <meta name="twitter:description" content="在您的浏览器中直接体验真实的神经网络。">
+  <meta name="twitter:url" content="http://playground.tensorflow.org">
+  <meta name="twitter:image" content="http://playground.tensorflow.org/preview.png">
+  <meta name="twitter:image:width" content="560">
+  <meta name="twitter:image:height" content="295">
+
+  <meta name="author" content="Daniel Smilkov and Shan Carter">
+  <title>神经网络可视化学习</title>
+  <link rel="stylesheet" href="bundle.css" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500|Material+Icons" rel="stylesheet" type="text/css">
+  <script src="lib.js"></script>
+</head>
+<body>
+  <!-- GitHub link -->
+  <a class="github-link" href="https://github.com/tensorflow/playground" title="在GitHub上查看源码" target="_blank">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 60.5 60.5" width="60" height="60">
+      <polygon class="bg" points="60.5,60.5 0,0 60.5,0 "/>
+      <path class="icon" d="M43.1,5.8c-6.6,0-12,5.4-12,12c0,5.3,3.4,9.8,8.2,11.4c0.6,0.1,0.8-0.3,0.8-0.6c0-0.3,0-1,0-2c-3.3,0.7-4-1.6-4-1.6c-0.5-1.4-1.3-1.8-1.3-1.8c-1.1-0.7,0.1-0.7,0.1-0.7c1.2,0.1,1.8,1.2,1.8,1.2c1.1,1.8,2.8,1.3,3.5,1c0.1-0.8,0.4-1.3,0.8-1.6c-2.7-0.3-5.5-1.3-5.5-5.9c0-1.3,0.5-2.4,1.2-3.2c-0.1-0.3-0.5-1.5,0.1-3.2c0,0,1-0.3,3.3,1.2c1-0.3,2-0.4,3-0.4c1,0,2,0.1,3,0.4c2.3-1.6,3.3-1.2,3.3-1.2c0.7,1.7,0.2,2.9,0.1,3.2c0.8,0.8,1.2,1.9,1.2,3.2c0,4.6-2.8,5.6-5.5,5.9c0.4,0.4,0.8,1.1,0.8,2.2c0,1.6,0,2.9,0,3.3c0,0.3,0.2,0.7,0.8,0.6c4.8-1.6,8.2-6.1,8.2-11.4C55.1,11.2,49.7,5.8,43.1,5.8z"/>
+    </svg>
+  </a>
+
+
+  <!-- Top Controls -->
+  <div id="top-controls">
+    <div class="container l--page">
+      <div class="timeline-controls">
+        <button class="mdl-button mdl-js-button mdl-button--icon ui-resetButton" id="reset-button" title="重置网络">
+          <i class="material-icons">replay</i>
+        </button>
+        <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored ui-playButton" id="play-pause-button" title="运行/暂停">
+          <i class="material-icons">play_arrow</i>
+          <i class="material-icons">pause</i>
+        </button>
+        <button class="mdl-button mdl-js-button mdl-button--icon ui-stepButton" id="next-step-button" title="单步执行">
+          <i class="material-icons">skip_next</i>
+        </button>
+      </div>
+      <div class="control">
+        <span class="label">轮次</span>
+        <span class="value" id="iter-number"></span>
+      </div>
+      <div class="control ui-learningRate">
+        <label for="learningRate" title="控制每次训练更新的步长大小。太小学习太慢，太大可能震荡不收敛。建议从0.01-0.1开始尝试。">学习率</label>
+        <div class="select">
+          <select id="learningRate">
+            <option value="0.00001">0.00001</option>
+            <option value="0.0001">0.0001</option>
+            <option value="0.001">0.001</option>
+            <option value="0.003">0.003</option>
+            <option value="0.01">0.01</option>
+            <option value="0.03">0.03</option>
+            <option value="0.1">0.1</option>
+            <option value="0.3">0.3</option>
+            <option value="1">1</option>
+            <option value="3">3</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+      </div>
+      <div class="control ui-activation">
+        <label for="activations" title="为神经元添加非线性，让网络能学习复杂模式。ReLU最常用，Tanh和Sigmoid适合不同场景。">激活函数</label>
+        <div class="select">
+          <select id="activations">
+            <option value="relu">ReLU</option>
+            <option value="tanh">Tanh</option>
+            <option value="sigmoid">Sigmoid</option>
+            <option value="linear">线性</option>
+          </select>
+        </div>
+      </div>
+      <div class="control ui-regularization">
+        <label for="regularizations" title="防止过拟合的技术。L1让权重稀疏，L2让权重变小，两者都能提高模型泛化能力。">正则化</label>
+        <div class="select">
+          <select id="regularizations">
+            <option value="none">无</option>
+            <option value="L1">L1</option>
+            <option value="L2">L2</option>
+          </select>
+        </div>
+      </div>
+      <div class="control ui-regularizationRate">
+        <label for="regularRate" title="控制正则化的强度。越大正则化效果越强，但可能欠拟合。建议从0.01开始尝试。">正则化率</label>
+        <div class="select">
+          <select id="regularRate">
+            <option value="0">0</option>
+            <option value="0.001">0.001</option>
+            <option value="0.003">0.003</option>
+            <option value="0.01">0.01</option>
+            <option value="0.03">0.03</option>
+            <option value="0.1">0.1</option>
+            <option value="0.3">0.3</option>
+            <option value="1">1</option>
+            <option value="3">3</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+      </div>
+      <div class="control ui-problem">
+        <label for="problem" title="分类：预测类别归属（如判断是蓝色还是橙色）。回归：预测连续数值。">问题类型</label>
+        <div class="select">
+          <select id="problem">
+            <option value="classification">分类</option>
+            <option value="regression">回归</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Part -->
+  <div id="main-part" class="l--page">
+
+    <!--  Data Column-->
+    <div class="column data">
+      <h4>
+        <span>数据</span>
+      </h4>
+      <div class="ui-dataset">
+        <p>您想使用哪个数据集？</p>
+        <div class="dataset-list">
+          <div class="dataset" title="圆形">
+            <canvas class="data-thumbnail" data-dataset="circle"></canvas>
+          </div>
+          <div class="dataset" title="异或">
+            <canvas class="data-thumbnail" data-dataset="xor"></canvas>
+          </div>
+          <div class="dataset" title="高斯">
+            <canvas class="data-thumbnail" data-dataset="gauss"></canvas>
+          </div>
+          <div class="dataset" title="螺旋">
+            <canvas class="data-thumbnail" data-dataset="spiral"></canvas>
+          </div>
+          <div class="dataset" title="棋盘格">
+            <canvas class="data-thumbnail" data-dataset="checkerboard"></canvas>
+          </div>
+          <div class="dataset" title="月牙">
+            <canvas class="data-thumbnail" data-dataset="moon"></canvas>
+          </div>
+          <div class="dataset" title="心形">
+            <canvas class="data-thumbnail" data-dataset="heart"></canvas>
+          </div>
+          <div class="dataset" title="对角线">
+            <canvas class="data-thumbnail" data-dataset="diagonal"></canvas>
+          </div>
+          <div class="dataset" title="环形">
+            <canvas class="data-thumbnail" data-dataset="ring"></canvas>
+          </div>
+          <div class="dataset" title="波浪">
+            <canvas class="data-thumbnail" data-dataset="wave"></canvas>
+          </div>
+          <div class="dataset" title="三角形">
+            <canvas class="data-thumbnail" data-dataset="triangle"></canvas>
+          </div>
+          <div class="dataset" title="平面">
+            <canvas class="data-thumbnail" data-regDataset="reg-plane"></canvas>
+          </div>
+          <div class="dataset" title="多高斯">
+            <canvas class="data-thumbnail" data-regDataset="reg-gauss"></canvas>
+          </div>
+          <div class="dataset" title="正弦波">
+            <canvas class="data-thumbnail" data-regDataset="reg-sine"></canvas>
+          </div>
+          <div class="dataset" title="碗形">
+            <canvas class="data-thumbnail" data-regDataset="reg-bowl"></canvas>
+          </div>
+          <div class="dataset" title="山丘">
+            <canvas class="data-thumbnail" data-regDataset="reg-hills"></canvas>
+          </div>
+          <div class="dataset" title="瑞士卷">
+            <canvas class="data-thumbnail" data-regDataset="reg-swiss"></canvas>
+          </div>
+          <div class="dataset" title="径向">
+            <canvas class="data-thumbnail" data-regDataset="reg-radial"></canvas>
+          </div>
+          <div class="dataset" title="棋盘格回归">
+            <canvas class="data-thumbnail" data-regDataset="reg-checker"></canvas>
+          </div>
+          <div class="dataset" title="马鞍形">
+            <canvas class="data-thumbnail" data-regDataset="reg-saddle"></canvas>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ui-percTrainData">
+          <label for="percTrainData">训练集与测试集比例:&nbsp;&nbsp;<span class="value">XX</span>%</label>
+          <p class="slider">
+            <input class="mdl-slider mdl-js-slider" type="range" id="percTrainData" min="10" max="90" step="10">
+          </p>
+        </div>
+        <div class="ui-noise">
+          <label for="noise">噪声:&nbsp;&nbsp;<span class="value">XX</span></label>
+          <p class="slider">
+            <input class="mdl-slider mdl-js-slider" type="range" id="noise" min="0" max="50" step="5">
+          </p>
+        </div>
+        <div class="ui-batchSize">
+          <label for="batchSize">批次大小:&nbsp;&nbsp;<span class="value">XX</span></label>
+          <p class="slider">
+            <input class="mdl-slider mdl-js-slider" type="range" id="batchSize" min="1" max="30" step="1">
+          </p>
+        </div>
+          <button class="basic-button" id="data-regen-button" title="重新生成数据">
+            重新生成
+          </button>
+      </div>
+    </div>
+
+    <!-- Features Column -->
+    <div class="column features">
+      <h4 title="输入神经网络的数据属性。X1/X2是原始坐标，其他是变换后的特征。选择合适特征可提高学习效率。">特征</h4>
+      <p>您想输入哪些属性？</p>
+      <div id="network">
+        <svg id="svg" width="510" height="450">
+          <defs>
+            <marker id="markerArrow" markerWidth="7" markerHeight="13" refX="1" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+              <path d="M2,11 L7,6 L2,2" />
+            </marker>
+          </defs>
+        </svg>
+        <!-- Hover card -->
+        <div id="hovercard">
+          <div style="font-size:10px">点击任意位置进行编辑。</div>
+          <div><span class="type">权重/偏置</span> 为 <span class="value">0.2</span><span><input type="number"/></span>。</div>
+        </div>
+        <div class="callout thumbnail">
+          <svg viewBox="0 0 30 30">
+            <defs>
+              <marker id="arrow" markerWidth="5" markerHeight="5" refx="5" refy="2.5" orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L5,2.5 L0,5 z"/>
+              </marker>
+            </defs>
+            <path d="M12,30C5,20 2,15 12,0" marker-end="url(#arrow)">
+          </svg>
+          <div class="label">
+            这是一个<b>神经元</b>的输出。悬停可以看到更大的视图。
+          </div>
+        </div>
+        <div class="callout weights">
+          <svg viewBox="0 0 30 30">
+            <defs>
+              <marker id="arrow" markerWidth="5" markerHeight="5" refx="5" refy="2.5" orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L5,2.5 L0,5 z"/>
+              </marker>
+            </defs>
+            <path d="M12,30C5,20 2,15 12,0" marker-end="url(#arrow)">
+          </svg>
+          <div class="label">
+            输出与不同的<b>权重</b>混合，通过线条粗细表示。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Layers Column -->
+    <div class="column hidden-layers">
+      <h4>
+        <div class="ui-numHiddenLayers">
+          <button id="add-layers" class="mdl-button mdl-js-button mdl-button--icon">
+            <i class="material-icons">add</i>
+          </button>
+          <button id="remove-layers" class="mdl-button mdl-js-button mdl-button--icon">
+            <i class="material-icons">remove</i>
+          </button>
+        </div>
+        <span id="num-layers"></span>
+        <span id="layers-label"></span>
+      </h4>
+      <div class="bracket"></div>
+    </div>
+
+    <!-- Output Column -->
+    <div class="column output">
+      <h4 title="神经网络的预测结果。热力图显示决策边界，损失图显示训练过程中的误差变化。">输出</h4>
+      <div class="metrics">
+        <div class="output-stats ui-percTrainData">
+          <span>测试损失</span>
+          <div class="value" id="loss-test"></div>
+        </div>
+        <div class="output-stats train">
+          <span>训练损失</span>
+          <div class="value" id="loss-train"></div>
+        </div>
+        <div id="linechart"></div>
+      </div>
+      <div id="heatmap"></div>
+      <div style="float:left;margin-top:20px">
+        <div style="display:flex; align-items:center;">
+
+          <!-- Gradient color scale -->
+          <div class="label" style="width:105px; margin-right: 10px">
+            颜色表示数据、神经元和权重的值。
+          </div>
+          <svg width="150" height="30" id="colormap">
+            <defs>
+              <linearGradient id="gradient" x1="0%" y1="100%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59322" stop-opacity="1"></stop>
+                <stop offset="50%" stop-color="#e8eaeb" stop-opacity="1"></stop>
+                <stop offset="100%" stop-color="#0877bd" stop-opacity="1"></stop>
+              </linearGradient>
+            </defs>
+            <g class="core" transform="translate(3, 0)">
+              <rect width="144" height="10" style="fill: url('#gradient');"></rect>
+            </g>
+          </svg>
+        </div>
+        <br/>
+        <div style="display:flex;">
+          <label class="ui-showTestData mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="show-test-data">
+            <input type="checkbox" id="show-test-data" class="mdl-checkbox__input" checked>
+            <span class="mdl-checkbox__label label">显示测试数据</span>
+          </label>
+          <label class="ui-discretize mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="discretize">
+            <input type="checkbox" id="discretize" class="mdl-checkbox__input" checked>
+            <span class="mdl-checkbox__label label">离散化输出</span>
+          </label>
+        </div>
+        
+        <!-- 回放控制 -->
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="min-width: 80px; font-weight: bold;">决策边界回放:</span>
+            <button class="mdl-button mdl-js-button mdl-button--colored" id="replay-start-button" style="min-width: 80px;">
+              <i class="material-icons" style="font-size: 16px; margin-right: 4px;">play_arrow</i>播放
+            </button>
+            <button class="mdl-button mdl-js-button" id="replay-stop-button" style="min-width: 80px;">
+              <i class="material-icons" style="font-size: 16px; margin-right: 4px;">pause</i>停止
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-left: 90px; margin-bottom: 10px;">
+            <input type="range" id="replay-slider" min="0" max="0" value="0" style="flex: 1;">
+            <span id="replay-iter" style="min-width: 50px; text-align: right;">0</span>
+          </div>
+          
+          <!-- 隐藏层激活展示控制 -->
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="show-activation" checked style="width: 20px; height: 20px;">
+            <span>显示隐藏层节点激活状态（颜色越深表示激活越强）</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- More -->
+  <div class="more">
+    <!-- <button class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">keyboard_arrow_down</i></button> -->
+    <button class="mdl-button mdl-js-button mdl-button--fab">
+      <i class="material-icons">keyboard_arrow_down</i>
+    </button>
+  </div>
+  <!-- Article -->
+
+  <article id="article-text">
+    <div class="l--body">
+      <h2>程序工作原理</h2>
+      <p>这是一个交互式的神经网络可视化工具。它展示了神经网络如何从数据中学习模式。网络由输入层、隐藏层和输出层组成，每层包含多个神经元。神经元之间通过权重连接，训练过程中这些权重会不断调整，使网络能够更好地预测结果。</p>
+      <p><strong>颜色说明：</strong>蓝色表示正值，橙色表示负值。连接线的粗细表示权重大小，越粗的线影响越大。输出区域的背景色显示网络对该区域的预测置信度。</p>
+    </div>
+
+    <div class="l--body">
+      <h2>使用方法步骤</h2>
+      <p><strong>1. 选择数据集：</strong>在左侧选择一个数据集，从简单的圆形或高斯开始，逐渐尝试更复杂的螺旋或棋盘格。</p>
+      <p><strong>2. 配置网络：</strong>在中间区域选择输入特征，设置隐藏层数量和每层神经元数。点击+/-按钮添加或删除层，点击层上的+/-按钮调整该层神经元数。</p>
+      <p><strong>3. 设置参数：</strong>在顶部设置学习率、激活函数、正则化等参数。</p>
+      <p><strong>4. 开始训练：</strong>点击播放按钮开始训练，观察右侧输出区域的决策边界如何变化。可以随时暂停或重置。</p>
+      <p><strong>5. 观察学习过程：</strong>观察损失曲线的变化，蓝色曲线是训练损失，橙色是测试损失。</p>
+    </div>
+
+    <div class="l--body">
+      <h2>详细参数说明</h2>
+      <p><strong>学习率：</strong>控制每次参数更新的步长。太小学习太慢，太大可能震荡不收敛。建议0.01-0.3之间。</p>
+      <p><strong>激活函数：</strong>为神经元添加非线性。ReLU是最常用的选择；Tanh适合输出在-1到1之间；Sigmoid适合概率输出；线性用于回归问题。</p>
+      <p><strong>正则化：</strong>防止过拟合。L1使权重稀疏（很多接近0）；L2使权重变小。</p>
+      <p><strong>正则化率：</strong>控制正则化强度。太大可能欠拟合，建议0-0.1之间。</p>
+      <p><strong>问题类型：</strong>分类预测类别（蓝色vs橙色）；回归预测连续数值。</p>
+      <p><strong>数据集：</strong>选择不同的训练数据分布，不同数据集需要不同复杂度的网络。</p>
+      <p><strong>训练数据比例：</strong>训练集占比，通常70-80%用于训练。</p>
+      <p><strong>噪声级别：</strong>添加数据噪声，增加难度，测试网络的鲁棒性。</p>
+      <p><strong>批次大小：</strong>每次更新使用的样本数。</p>
+    </div>
+
+    <div class="l--body">
+      <h2>获得最佳输出的调整方法</h2>
+      <p><strong>简单问题（圆形、高斯）：</strong>1-2层隐藏层，每层2-4个神经元，学习率0.1-0.3，通常很快收敛。</p>
+      <p><strong>中等问题（异或、月牙）：</strong>2-3层隐藏层，每层4-8个神经元，学习率0.03-0.1。</p>
+      <p><strong>复杂问题（螺旋、棋盘格）：</strong>3-6层隐藏层，每层8-16个神经元，学习率0.01-0.03，可能需要添加正则化。</p>
+      <p><strong>过拟合迹象：</strong>训练损失很低但测试损失很高，决策边界过于复杂。解决方法：添加正则化，减少层数/神经元，增加训练数据。</p>
+      <p><strong>欠拟合迹象：</strong>训练和测试损失都很高，决策边界过于简单。解决方法：增加层数/神经元，减小正则化，尝试不同的激活函数。</p>
+      <p><strong>最佳时机：</strong>在测试损失开始上升之前停止训练，这是模型泛化能力最好的时候。</p>
+    </div>
+  </article>
+  <script src="bundle.js"></script>
+  <!-- Google analytics -->
+  <script src="analytics.js"></script>
+</body>
+</html>
